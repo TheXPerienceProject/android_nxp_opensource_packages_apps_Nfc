@@ -2,7 +2,7 @@
  * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  * Not a Contribution.
  *
- * Copyright (C) 2018 NXP Semiconductors
+ * Copyright (C) 2018-2019 NXP Semiconductors
  * The original Work has been changed by NXP Semiconductors.
  * Copyright (C) 2010 The Android Open Source Project
  *
@@ -99,8 +99,8 @@ public class NativeNfcManager implements DeviceHost {
                 mNqHal = INqNfc.getService();
             }
             if(mNqHal != null) {
-                isHalServiceSupported = true;
                 chipIdValue = mNqHal.getNfcChipId();
+                isHalServiceSupported = true;
                 Log.d(TAG, "Chip-ID received from HAL interface: "+chipIdValue);
             }
         }
@@ -110,7 +110,7 @@ public class NativeNfcManager implements DeviceHost {
 
         if(isHalServiceSupported == false) {
             Log.d(TAG, "Reading system property for chip-id.");
-            chipIdValue = SystemProperties.get("vendor.qti.nfc.chipid", "");
+            chipIdValue = SystemProperties.get("vendor.qti.nfc.chipid", "0x51");
             Log.d(TAG, "Chip-ID received from system property: "+chipIdValue);
         }
 
@@ -147,8 +147,8 @@ public class NativeNfcManager implements DeviceHost {
     public native int doGetLastError();
 
     @Override
-    public void checkFirmware() {
-        doDownload();
+    public boolean checkFirmware() {
+        return doDownload();
     }
     public native int doaccessControlForCOSU (int mode);
 
@@ -261,6 +261,9 @@ public class NativeNfcManager implements DeviceHost {
 
     @Override
     public native int   getDefaultFelicaCLTPowerState();
+
+    @Override
+    public native int getGsmaPwrState();
 
     @Override
     public native boolean commitRouting();
@@ -570,6 +573,12 @@ public class NativeNfcManager implements DeviceHost {
     public boolean disableScreenOffSuspend() {
         doDisableScreenOffSuspend();
         return true;
+    }
+
+    private native boolean doSetNfcSecure(boolean enable);
+    @Override
+    public boolean setNfcSecure(boolean enable) {
+        return doSetNfcSecure(enable);
     }
 
     /**

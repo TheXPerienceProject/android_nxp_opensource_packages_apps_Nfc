@@ -1901,10 +1901,17 @@ static void nfaConnectionCallback(uint8_t connEvent,
   *******************************************************************************/
   static jboolean nfcManager_routeAid(JNIEnv * e, jobject, jbyteArray aid,
                                       jint route, jint power, jint aidInfo) {
-    ScopedByteArrayRO bytes(e, aid);
-    uint8_t* buf =
-        const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&bytes[0]));
-    size_t bufLen = bytes.size();
+    uint8_t* buf;
+    size_t bufLen;
+
+    if (aid == NULL) {
+      buf = NULL;
+      bufLen = 0;
+    } else {
+      ScopedByteArrayRO bytes(e, aid);
+      buf = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&bytes[0]));
+      bufLen = bytes.size();
+    }
 
 #if (NXP_EXTNS == TRUE)
     if ((nfcFL.nfccFL._NFC_NXP_STAT_DUAL_UICC_WO_EXT_SWITCH) &&
@@ -1945,10 +1952,17 @@ static void nfaConnectionCallback(uint8_t connEvent,
   **
   *******************************************************************************/
   static jboolean nfcManager_unrouteAid(JNIEnv * e, jobject, jbyteArray aid) {
-    ScopedByteArrayRO bytes(e, aid);
-    uint8_t* buf =
-        const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&bytes[0]));
-    size_t bufLen = bytes.size();
+    uint8_t* buf;
+    size_t bufLen;
+
+    if (aid == NULL) {
+      buf = NULL;
+      bufLen = 0;
+    } else {
+      ScopedByteArrayRO bytes(e, aid);
+      buf = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&bytes[0]));
+      bufLen = bytes.size();
+    }
     bool result = RoutingManager::getInstance().removeAidRouting(buf, bufLen);
     return result;
   }
@@ -3936,6 +3950,11 @@ static void nfcManager_doFactoryReset(JNIEnv*, jobject) {
     GetNxpNumValue(NAME_DEFAULT_ROUTE_PWR_STATE, &num, sizeof(num));
     return num;
   }
+
+  static int nfcManager_getDefaulGsmaPowerState(JNIEnv * /* e */, jobject /* o */) {
+    return 0;
+  }
+
   /*******************************************************************************
   **
   ** Function:        nfcManager_getDefaultMifareCLTPowerState
@@ -4604,6 +4623,12 @@ __attribute__((unused)) static int nfcManager_getNfcInitTimeout(JNIEnv * e, jobj
   return NfcConfig::getUnsigned(NAME_ISO_DEP_MAX_TRANSCEIVE, 261);
   }
 
+  static jboolean nfcManager_doSetNfcSecure(JNIEnv * /* e */, jobject /* o */,
+                                            jboolean /* enable */) {
+    return true;
+  }
+
+
   /*****************************************************************************
   **
   ** JNI functions for android-4.0.1_r1
@@ -4646,6 +4671,9 @@ __attribute__((unused)) static int nfcManager_getNfcInitTimeout(JNIEnv * e, jobj
     {"readerPassThruMode", "(BB)[B", (void*)nfcManager_readerPassThruMode},
     {"transceiveAppData", "([B)[B", (void*)nfcManager_transceiveAppData},
 #if (NXP_EXTNS == TRUE)
+     {"getGsmaPwrState", "()I",
+            (void*) nfcManager_getDefaulGsmaPowerState},
+
      {"getDefaultFelicaCLTPowerState", "()I",
             (void*) nfcManager_getDefaultFelicaCLTPowerState},
 
@@ -4742,6 +4770,7 @@ __attribute__((unused)) static int nfcManager_getNfcInitTimeout(JNIEnv * e, jobj
     {"routeApduPattern", "(II[B[B)Z", (void*)nfcManager_routeApduPattern},
     {"unrouteApduPattern", "([B)Z", (void*)nfcManager_unrouteApduPattern},
 #endif
+    {"doSetNfcSecure", "(Z)Z", (void*)nfcManager_doSetNfcSecure},
   };
 
   /*******************************************************************************
